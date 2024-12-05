@@ -1,6 +1,6 @@
 const std = @import("std");
 
-pub fn build(b: *std.Build) void {
+pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const opt = b.standardOptimizeOption(.{});
     
@@ -10,6 +10,10 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = opt,
     });
-
+    
     b.installArtifact(exe);
+
+    const run_exe = b.addRunArtifact(exe);
+    const run_step = b.step("run", "Run the application");
+    run_step.dependOn(&run_exe.step);
 }
