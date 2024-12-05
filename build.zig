@@ -10,7 +10,25 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = opt,
     });
-    
+
+    // link vulkan sdk
+    const vk_lib_name = if (target.result.os.tag == .windows) "vulkan-1" else "vulkan";
+    exe.linkSystemLibrary(vk_lib_name);
+    const vk_sdk_path = std.process.getEnvVarOwned(b.allocator, "VK_SDK_PATH") catch 
+        std.process.getEnvVarOwned(b.allocator, "VULKAN_SDK") catch |e| 
+            std.debug.panic("Error getting VK_SDK_PATH or VULKAN_SDK env var: {}", .{e});
+    defer b.allocator.free(vk_sdk_path);
+    const vk_lib_path = std.fmt.allocPrint(b.allocator, "{s}/Lib/", .{ vk_sdk_path }) catch @panic("OOM");
+    defer b.allocator.free(vk_lib_path);
+    exe.addLibraryPath(.{ .cwd_relative = vk_lib_path });
+    const vk_include_path = std.fmt.allocPrint(b.allocator, "{s}/Include/", .{ vk_sdk_path }) catch @panic("OOM");
+    defer b.allocator.free(vk_include_path);
+    exe.addIncludePath(.{ .cwd_relative = vk_include_path });
+
+    exe.linkSystemLibrary("glfw3");
+    exe.addIncludePath(.{ .cwd_relative = "thirdparty/glfw/include"});
+    exe.addLibraryPath(.{ .cwd_relative = "thirdparty/glfw/lib"});
+
     b.installArtifact(exe);
 
     const run_exe = b.addRunArtifact(exe);
