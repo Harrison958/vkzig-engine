@@ -11,7 +11,6 @@ pub fn build(b: *std.Build) !void {
         .optimize = opt,
     });
 
-    // link vulkan sdk
     const vk_lib_name = if (target.result.os.tag == .windows) "vulkan-1" else "vulkan";
     exe.linkSystemLibrary(vk_lib_name);
     const vk_sdk_path = std.process.getEnvVarOwned(b.allocator, "VK_SDK_PATH") catch 
@@ -24,14 +23,14 @@ pub fn build(b: *std.Build) !void {
     const vk_include_path = std.fmt.allocPrint(b.allocator, "{s}/Include/", .{ vk_sdk_path }) catch @panic("OOM");
     defer b.allocator.free(vk_include_path);
     exe.addIncludePath(.{ .cwd_relative = vk_include_path });
-    // link glfw
+
     exe.addIncludePath(.{ .cwd_relative = "thirdparty/glfw/include/"});
     exe.addObjectFile(.{ .cwd_relative = "thirdparty/glfw/lib/glfw3.lib"});
-    // link vma
-    exe.addCSourceFile(.{ .file = b.path("thirdparty/vma/vk_mem_alloc.cpp"), .flags = &.{ "" } });
+
+    exe.addCSourceFile(.{ .file = b.path("thirdparty/vma/vk_mem_alloc.cpp")});
     exe.addIncludePath(b.path("thirdparty/vma/"));
-    // link stb_image
-    exe.addCSourceFile(.{ .file = b.path("thirdparty/stb/stb_image.c"), .flags = &.{ "" } });
+
+    exe.addCSourceFile(.{ .file = b.path("thirdparty/stb/stb_image.c")});
     exe.addIncludePath(b.path("thirdparty/stb/"));
 
     exe.linkLibC();
