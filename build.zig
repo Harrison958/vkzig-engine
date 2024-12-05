@@ -24,10 +24,18 @@ pub fn build(b: *std.Build) !void {
     const vk_include_path = std.fmt.allocPrint(b.allocator, "{s}/Include/", .{ vk_sdk_path }) catch @panic("OOM");
     defer b.allocator.free(vk_include_path);
     exe.addIncludePath(.{ .cwd_relative = vk_include_path });
+    // link glfw
+    exe.addIncludePath(.{ .cwd_relative = "thirdparty/glfw/include/"});
+    exe.addObjectFile(.{ .cwd_relative = "thirdparty/glfw/lib/glfw3.lib"});
+    // link vma
+    exe.addCSourceFile(.{ .file = b.path("thirdparty/vma/vk_mem_alloc.cpp"), .flags = &.{ "" } });
+    exe.addIncludePath(b.path("thirdparty/vma/"));
+    // link stb_image
+    exe.addCSourceFile(.{ .file = b.path("thirdparty/stb/stb_image.c"), .flags = &.{ "" } });
+    exe.addIncludePath(b.path("thirdparty/stb/"));
 
-    exe.linkSystemLibrary("glfw3");
-    exe.addIncludePath(.{ .cwd_relative = "thirdparty/glfw/include"});
-    exe.addLibraryPath(.{ .cwd_relative = "thirdparty/glfw/lib"});
+    exe.linkLibC();
+    exe.linkLibCpp();
 
     b.installArtifact(exe);
 
